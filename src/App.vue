@@ -1,6 +1,6 @@
 <script setup>
-    import { ref, watchEffect, computed } from 'vue'
-    import { computePosition, offset, flip, shift } from '@floating-ui/dom'
+    import { ref, watchEffect, computed, onBeforeUnmount } from 'vue'
+    import { computePosition, offset, flip, shift, autoUpdate } from '@floating-ui/dom'
 
     const { x, y, reference, floating, strategy } = useFloating()
 
@@ -12,23 +12,30 @@
         const y = ref(0)
         const xPX = computed(() => x.value + 'px')
         const yPX = computed(() => y.value + 'px')
+        let cleanup = null
 
-        watchEffect(async () => {
+        const stop = watchEffect(() => {
             if (!reference.value || !floating.value) return
 
-            const { x: xValue, y: yValue } = await computePosition(
-                reference.value,
-                floating.value,
-                {
-                    placement: 'bottom',
-                    middleware: [offset(6), flip(), shift()],
-                }
-            )
+            cleanup = autoUpdate(reference.value, floating.value, async () => {
+                const { x: xValue, y: yValue } = await computePosition(
+                    reference.value,
+                    floating.value,
+                    {
+                        placement: 'bottom',
+                        middleware: [offset(6), flip(), shift()],
+                    }
+                )
 
-            x.value = xValue
-            y.value = yValue
+                x.value = xValue
+                y.value = yValue
+            })
 
-            console.log(yValue, xValue, x.value)
+            stop()
+        })
+
+        onBeforeUnmount(() => {
+            cleanup()
         })
 
         return { x: xPX, y: yPX, reference, floating, strategy }
