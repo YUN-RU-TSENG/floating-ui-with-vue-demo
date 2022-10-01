@@ -1,45 +1,7 @@
 <script setup>
-    import { ref, watchEffect, computed, onBeforeUnmount } from 'vue'
-    import { computePosition, offset, flip, shift, autoUpdate } from '@floating-ui/dom'
+    import { useFloating } from './composables/useFloating'
 
     const { x, y, reference, floating, strategy } = useFloating()
-
-    function useFloating() {
-        const strategy = ref('absolute')
-        const floating = ref(null)
-        const reference = ref(null)
-        const x = ref(0)
-        const y = ref(0)
-        const xPX = computed(() => x.value + 'px')
-        const yPX = computed(() => y.value + 'px')
-        let cleanup = null
-
-        const stop = watchEffect(() => {
-            if (!reference.value || !floating.value) return
-
-            cleanup = autoUpdate(reference.value, floating.value, async () => {
-                const { x: xValue, y: yValue } = await computePosition(
-                    reference.value,
-                    floating.value,
-                    {
-                        placement: 'bottom',
-                        middleware: [offset(6), flip(), shift()],
-                    }
-                )
-
-                x.value = xValue
-                y.value = yValue
-            })
-
-            stop()
-        })
-
-        onBeforeUnmount(() => {
-            cleanup()
-        })
-
-        return { x: xPX, y: yPX, reference, floating, strategy }
-    }
 </script>
 
 <template>
