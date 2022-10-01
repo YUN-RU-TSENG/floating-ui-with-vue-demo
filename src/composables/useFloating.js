@@ -1,8 +1,6 @@
 import { ref, watchEffect, computed, onBeforeUnmount } from 'vue'
 import { computePosition, offset, flip, shift, autoUpdate } from '@floating-ui/dom'
 
-
-
 export function useFloating() {
     const strategy = ref('absolute')
     const floating = ref(null)
